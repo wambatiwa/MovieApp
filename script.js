@@ -1,45 +1,45 @@
-const API_URL = 'https://api.themoviedb.org/3/discover/movie?sort_by=popularity.desc&api_key=817ef840985ad2eb4181ea4715913787&page=1'
+let page = 1
+let API_URL = `https://api.themoviedb.org/3/discover/movie?sort_by=popularity.desc&api_key=817ef840985ad2eb4181ea4715913787&page=${page}`
 const IMG_PATH = 'https://image.tmdb.org/t/p/w1280'
 const SEARCH_API = 'https://api.themoviedb.org/3/search/movie?api_key=817ef840985ad2eb4181ea4715913787&query="'
 
 const form = document.getElementById('form')
 const search = document.getElementById('search')
 const main = document.getElementById('main')
+const button = document.getElementById('loadMore')
+
 const myMovies = []
 
+
+
 getMovies(API_URL)
+
 
 
 async function getMovies(url) {
     const res = await fetch(url)
     const json = await res.json()
     const data = json.results
-    myMovies.push(...data)
+    myMovies.push(...data) // spread operator cause i will be adding more movies with the loadmore button
     console.log(myMovies);
     
-    showMovies(data);
+    showMovies(myMovies);
 }
 
 function showMovies(movies) {
-    main.innerHTML = ''
-
-    movies.forEach((movie) => {
-        const {title,poster_path,vote_average,overview} = movie
-        const movieEl = document.createElement('div')
-        movieEl.classList.add('movie')
-        movieEl.innerHTML = `
-        <img src="${IMG_PATH + poster_path}" alt="${title}" class="movie">
-        <div class="movie-info">
-            <h3>${title}</h3>
-            <span class="${getClassByRate(vote_average)}">${vote_average}</span>
-        </div>
-        <div class="overview">
-            <h3>Overview</h3>
-           ${overview}
-        </div>
-   `
-    main.appendChild(movieEl)
-    })
+    main.innerHTML = movies.reduce((html,movie) => html +`
+    <div class="movie">
+    <img src="${IMG_PATH + movie.poster_path}" alt="${movie.title}" class="movie">
+    <div class="movie-info">
+        <h3>${movie.title}</h3>
+        <span class="${getClassByRate(movie.vote_average)}">${movie.vote_average}</span>
+    </div>
+    <div class="overview">
+        <h3>Overview</h3>
+       ${movie.overview}
+    </div>
+    </div>
+`,'' )
 }
 
 function getClassByRate(vote) {
@@ -66,4 +66,10 @@ form.addEventListener('submit', (e) => {
     else {
         window.location.reload()
     }
+})
+
+button.addEventListener('click', (e) => {
+    page++
+    API_URL = `https://api.themoviedb.org/3/discover/movie?sort_by=popularity.desc&api_key=817ef840985ad2eb4181ea4715913787&page=${page}`
+    getMovies(API_URL)
 })
